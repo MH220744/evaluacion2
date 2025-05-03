@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente REST de Cupones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+        }
+        #resultado {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Cupones</h1>
+
+    <h2>Consultar Cupón</h2>
+    <input type="text" id="codigo" placeholder="Código del cupón">
+    <button onclick="consultarCupon()">Consultar</button>
+
+    <h2>Canjear Cupón</h2>
+    <input type="text" id="codigoCanje" placeholder="Código del cupón a canjear">
+    <button onclick="canjearCupon()">Canjear</button>
+
+    <div id="resultado"></div>
+
+    <script>
+        const token = '2|9kNgonOUoHZ0k4EHVR9SdVvCsVJddYfptAPYOtkL4187a98e'; // Reemplaza con tu token real
+
+        function consultarCupon() {
+            const codigo = document.getElementById('codigo').value;
+
+            if (codigo === "") {
+                alert("Por favor, ingresa el código del cupón.");
+                return;
+            }
+
+            fetch(`http://localhost/api/cupon/${codigo}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.codigo) {
+                    document.getElementById('resultado').innerHTML = `
+                        <h3>Datos del Cupón:</h3>
+                        <p><strong>Código:</strong> ${data.codigo}</p>
+                        <p><strong>Descripción:</strong> ${data.descripcion}</p>
+                        <p><strong>Fecha de Expiración:</strong> ${data.fecha_e}</p>
+                        <p><strong>Estado:</strong> ${data.canjeado ? "Canjeado" : "Disponible"}</p>
+                    `;
+                } else {
+                    document.getElementById('resultado').innerHTML = "<p>No se encontró el cupón.</p>";
+                }
+            })
+            .catch(error => {
+                document.getElementById('resultado').innerHTML = "<p>Error al obtener los datos del cupón.</p>";
+                console.error(error);
+            });
+        }
+
+        function canjearCupon() {
+            const codigo = document.getElementById('codigoCanje').value;
+
+            if (codigo === "") {
+                alert("Por favor, ingresa el código del cupón.");
+                return;
+            }
+
+            fetch(`http://localhost/api/cupon/${codigo}/canjear`, {
+                method: 'PUT', // Corregido a PUT
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Cupón canjeado con éxito") {
+                    document.getElementById('resultado').innerHTML = "<p>El cupón ha sido canjeado correctamente.</p>";
+                } else {
+                    document.getElementById('resultado').innerHTML = `<p>${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                document.getElementById('resultado').innerHTML = "<p>Error al canjear el cupón.</p>";
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>
